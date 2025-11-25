@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "delphi_metac"
+version = "0.1.0"
+description = ""
+authors = ["Jeff Mohl <jefftmohl@gmail.com>"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.11"
+python-decouple = "^3.8"
+requests = "^2.32.3"
+numpy = "^2.3.0"
+openai = "^1.57.4"
+python-dotenv = "^1.0.1"
+anthropic = "^0.71.0"
+nest-asyncio = "^1.6.0"
+
+
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^6.29.5"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
