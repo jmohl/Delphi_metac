@@ -1,5 +1,5 @@
 """
-LLM wrapper abstractions for forecast_bot_v2.
+LLM wrapper abstractions for forecast_bot.
 
 Provides a minimal replacement for forecasting_tools.GeneralLlm and
 structure_output without introducing a heavy dependency layer.

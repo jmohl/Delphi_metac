@@ -1,5 +1,5 @@
 """
-Forecast generation pipeline for forecast_bot_v2.
+Forecast generation pipeline for forecast_bot.
 
 Implements binary, multiple choice, numeric, and end-to-end forecasting flows
 using the v2 data models and LLM wrappers.
@@ -13,9 +13,9 @@ import re
 from datetime import datetime
 from typing import Any, Callable, Awaitable
 
-from forecast_bot_v2.configs import ForecasterConfig, EndToEndForecasterConfig
-from forecast_bot_v2.llm_wrappers import GeneralLlm
-from forecast_bot_v2.questions import (
+from forecast_bot.configs import ForecasterConfig, EndToEndForecasterConfig
+from forecast_bot.llm_wrappers import GeneralLlm
+from forecast_bot.questions import (
     BinaryQuestion,
     MetaculusQuestion,
     MultipleChoiceQuestion,
@@ -24,9 +24,9 @@ from forecast_bot_v2.questions import (
     PredictedOptionList,
     ReasonedPrediction,
 )
-from forecast_bot_v2.notepad import Notepad
-from forecast_bot_v2.prompts import get_prompt
-from forecast_bot_v2.utils import clean_indents
+from forecast_bot.notepad import Notepad
+from forecast_bot.prompts import get_prompt
+from forecast_bot.utils import clean_indents
 
 logger = logging.getLogger(__name__)
 
@@ -322,8 +322,8 @@ class ForecastModule:
         """
         Use an LLM to extract multiple choice predictions when regex parsing fails.
         """
-        from forecast_bot_v2.llm_wrappers import GeneralLlm
-        from forecast_bot_v2.prompts import MULTIPLE_CHOICE_PARSING_INSTRUCTIONS
+        from forecast_bot.llm_wrappers import GeneralLlm
+        from forecast_bot.prompts import MULTIPLE_CHOICE_PARSING_INSTRUCTIONS
 
         parsing_prompt = f"""Extract the probability predictions from the following forecaster reasoning.
 
@@ -346,7 +346,7 @@ JSON output:"""
         response = await parser_model.invoke(parsing_prompt)
 
         # Extract JSON from response
-        from forecast_bot_v2.llm_wrappers import _extract_json
+        from forecast_bot.llm_wrappers import _extract_json
         json_obj = _extract_json(response)
 
         if not json_obj or not isinstance(json_obj, dict):
@@ -423,7 +423,7 @@ JSON output:"""
         """
         Use an LLM to extract numeric percentile predictions when regex parsing fails.
         """
-        from forecast_bot_v2.llm_wrappers import GeneralLlm
+        from forecast_bot.llm_wrappers import GeneralLlm
 
         parsing_prompt = f"""Extract the numeric percentile predictions from the following forecaster reasoning.
 
@@ -451,7 +451,7 @@ JSON output:"""
         response = await parser_model.invoke(parsing_prompt)
 
         # Extract JSON from response
-        from forecast_bot_v2.llm_wrappers import _extract_json
+        from forecast_bot.llm_wrappers import _extract_json
         json_obj = _extract_json(response)
 
         if not json_obj or not isinstance(json_obj, dict):

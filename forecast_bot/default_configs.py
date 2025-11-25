@@ -1,12 +1,12 @@
 """
 Default configurations for research and forecaster bots (v2).
 
-This file mirrors the v1 defaults but targets the forecast_bot_v2 classes and wrappers.
+This file mirrors the v1 defaults but targets the forecast_bot classes and wrappers.
 You can copy this file and modify it to create custom configurations, then point the
 v2 main script at the custom file if you want to override these defaults.
 """
 
-from forecast_bot_v2.configs import BotConfig, EndToEndForecasterConfig, ForecasterConfig, ResearchBotConfig
+from forecast_bot.configs import BotConfig, EndToEndForecasterConfig, ForecasterConfig, ResearchBotConfig
 
 
 def get_default_configs() -> tuple[BotConfig, list[ResearchBotConfig], list[ForecasterConfig], list[EndToEndForecasterConfig]]:
@@ -26,10 +26,10 @@ def get_default_configs() -> tuple[BotConfig, list[ResearchBotConfig], list[Fore
         predictions_per_research_report=0,
         use_research_summary_to_forecast=False,
         publish_reports_to_metaculus=True,
-        folder_to_save_reports_to="forecast_bot_v2/reports",
+        folder_to_save_reports_to="forecast_bot/reports",
         skip_previously_forecasted_questions=False,
         enable_end_to_end_forecaster=True,
-        end_to_end_forecasters_per_question=3,
+        end_to_end_forecasters_per_question=1,
         llms={
             # Default LLM (not actually used when forecaster configs are specified)
             "default": "openrouter/google/gemini-2.5-flash",

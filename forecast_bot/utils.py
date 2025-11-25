@@ -1,5 +1,5 @@
 """
-Shared helpers for forecast_bot_v2.
+Shared helpers for forecast_bot.
 
 Stub created during scaffolding.
 """

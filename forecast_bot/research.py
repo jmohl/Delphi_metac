@@ -1,5 +1,5 @@
 """
-Research pipeline for forecast_bot_v2.
+Research pipeline for forecast_bot.
 
 Ports the v1 research flow without forecasting_tools. Supports multiple web-search
 strategies and configurable prompts.
@@ -13,12 +13,12 @@ import os
 from datetime import datetime
 from typing import Optional
 
-from forecast_bot_v2.configs import ResearchBotConfig
-from forecast_bot_v2.llm_wrappers import GeneralLlm, validate_model_credentials
-from forecast_bot_v2.prompts import get_prompt
-from forecast_bot_v2 import prompts
-from forecast_bot_v2.questions import MetaculusQuestion
-from forecast_bot_v2.utils import clean_indents
+from forecast_bot.configs import ResearchBotConfig
+from forecast_bot.llm_wrappers import GeneralLlm, validate_model_credentials
+from forecast_bot.prompts import get_prompt
+from forecast_bot import prompts
+from forecast_bot.questions import MetaculusQuestion
+from forecast_bot.utils import clean_indents
 
 logger = logging.getLogger(__name__)
 

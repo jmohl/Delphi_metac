@@ -1,5 +1,5 @@
 """
-Aggregation utilities for forecast_bot_v2.
+Aggregation utilities for forecast_bot.
 
 Implements mean-based aggregation and reasoning synthesis without forecasting_tools.
 """
@@ -12,8 +12,8 @@ from typing import Any
 
 import numpy as np
 
-from forecast_bot_v2.llm_wrappers import GeneralLlm, validate_model_credentials
-from forecast_bot_v2.questions import (
+from forecast_bot.llm_wrappers import GeneralLlm, validate_model_credentials
+from forecast_bot.questions import (
     BinaryQuestion,
     MetaculusQuestion,
     MultipleChoiceQuestion,

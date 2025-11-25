@@ -1,5 +1,5 @@
 """
-Configuration classes for forecast_bot_v2.
+Configuration classes for forecast_bot.
 
 These mirror the v1 config objects without relying on pydantic or forecasting_tools.
 """
@@ -48,7 +48,7 @@ class BotConfig:
     predictions_per_research_report: int = 1
     use_research_summary_to_forecast: bool = False
     publish_reports_to_metaculus: bool = False
-    folder_to_save_reports_to: str = "forecast_bot_v2/reports"
+    folder_to_save_reports_to: str = "forecast_bot/reports"
     skip_previously_forecasted_questions: bool = True
     enable_end_to_end_forecaster: bool = True
     end_to_end_forecasters_per_question: int = 0

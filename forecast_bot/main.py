@@ -2,7 +2,7 @@
 Orchestrates the v2 forecasting pipeline without forecasting_tools.
 
 Usage example (from repo root):
-    PYTHONPATH=. python -m forecast_bot_v2.main --mode test_questions --dry-run
+    PYTHONPATH=. python -m forecast_bot.main --mode test_questions --dry-run
 """
 
 from __future__ import annotations
@@ -18,24 +18,24 @@ from typing import Any, Iterable
 
 from dotenv import load_dotenv
 
-from forecast_bot_v2.aggregate import AggregationModule
-from forecast_bot_v2.configs import (
+from forecast_bot.aggregate import AggregationModule
+from forecast_bot.configs import (
     BotConfig,
     EndToEndForecasterConfig,
     ForecasterConfig,
     ResearchBotConfig,
 )
-from forecast_bot_v2.metaculus_client import MetaculusClient
-from forecast_bot_v2.notepad import build_notepad, Notepad
-from forecast_bot_v2.questions import (
+from forecast_bot.metaculus_client import MetaculusClient
+from forecast_bot.notepad import build_notepad, Notepad
+from forecast_bot.questions import (
     BinaryQuestion,
     MetaculusQuestion,
     MultipleChoiceQuestion,
     NumericQuestion,
 )
-from forecast_bot_v2.research import ResearchModule
-from forecast_bot_v2.forecast import ForecastModule
-from forecast_bot_v2.reporting import ForecastReport, Reporter
+from forecast_bot.research import ResearchModule
+from forecast_bot.forecast import ForecastModule
+from forecast_bot.reporting import ForecastReport, Reporter
 
 logger = logging.getLogger(__name__)
 
@@ -45,9 +45,9 @@ load_dotenv()
 
 TEST_QUESTION_URLS = [
     "https://www.metaculus.com/questions/578/human-extinction-by-2100/",
-    "https://www.metaculus.com/questions/14333/age-of-oldest-human-as-of-2100/",
-    "https://www.metaculus.com/questions/22427/number-of-new-leading-ai-labs/",
-    "https://www.metaculus.com/c/diffusion-community/38880/how-many-us-labor-strikes-due-to-ai-in-2029/",
+    #"https://www.metaculus.com/questions/14333/age-of-oldest-human-as-of-2100/",
+    #"https://www.metaculus.com/questions/22427/number-of-new-leading-ai-labs/",
+    #"https://www.metaculus.com/c/diffusion-community/38880/how-many-us-labor-strikes-due-to-ai-in-2029/",
 ]
 
 
@@ -255,7 +255,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--config",
-        default="forecast_bot_v2/default_configs.py",
+        default="forecast_bot/default_configs.py",
         help="Path to a config module exposing get_default_configs().",
     )
     parser.add_argument(
@@ -274,12 +274,12 @@ def load_configs(config_path: str):
     if not os.path.exists(resolved):
         raise FileNotFoundError(f"Config file not found: {resolved}")
 
-    spec = importlib.util.spec_from_file_location("forecast_bot_v2_configs", resolved)
+    spec = importlib.util.spec_from_file_location("forecast_bot_configs", resolved)
     if spec is None or spec.loader is None:
         raise ImportError(f"Could not load config file: {resolved}")
 
     config_module = importlib.util.module_from_spec(spec)
-    sys.modules["forecast_bot_v2_configs"] = config_module
+    sys.modules["forecast_bot_configs"] = config_module
     spec.loader.exec_module(config_module)
 
     if not hasattr(config_module, "get_default_configs"):

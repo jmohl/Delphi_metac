@@ -1,5 +1,5 @@
 """
-Metaculus API client for forecast_bot_v2.
+Metaculus API client for forecast_bot.
 
 Provides lightweight wrappers around the Metaculus REST API without relying on
 forecasting_tools. Supports fetching questions/posts and posting forecasts/comments.
@@ -13,7 +13,7 @@ from typing import Any, Iterable
 
 import requests
 
-from forecast_bot_v2.questions import (
+from forecast_bot.questions import (
     MetaculusQuestion,
     create_forecast_payload,
 )

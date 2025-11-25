@@ -1,5 +1,5 @@
 """
-Reporting and posting utilities for forecast_bot_v2.
+Reporting and posting utilities for forecast_bot.
 
 Handles saving reports locally and posting forecasts/comments to Metaculus.
 """
@@ -13,8 +13,8 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any, Optional
 
-from forecast_bot_v2.metaculus_client import MetaculusClient
-from forecast_bot_v2.questions import MetaculusQuestion, create_forecast_payload
+from forecast_bot.metaculus_client import MetaculusClient
+from forecast_bot.questions import MetaculusQuestion, create_forecast_payload
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +45,7 @@ class Reporter:
     Save reports to disk and optionally post forecasts/comments to Metaculus.
     """
 
-    def __init__(self, folder: str = "forecast_bot_v2/reports", metaculus_client: Optional[MetaculusClient] = None) -> None:
+    def __init__(self, folder: str = "forecast_bot/reports", metaculus_client: Optional[MetaculusClient] = None) -> None:
         self.folder = folder
         os.makedirs(folder, exist_ok=True)
         self.client = metaculus_client or MetaculusClient()

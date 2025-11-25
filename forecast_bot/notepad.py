@@ -1,5 +1,5 @@
 """
-Config tracking utilities for forecast_bot_v2.
+Config tracking utilities for forecast_bot.
 
 Recreates the queue-based selection logic from v1's MultiConfigNotepad without pydantic.
 """
@@ -9,13 +9,13 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Optional
 
-from forecast_bot_v2.configs import (
+from forecast_bot.configs import (
     EndToEndForecasterConfig,
     ForecasterConfig,
     ResearchBotConfig,
     prepare_configs,
 )
-from forecast_bot_v2.questions import MetaculusQuestion
+from forecast_bot.questions import MetaculusQuestion
 
 
 @dataclass
