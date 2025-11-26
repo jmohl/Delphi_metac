@@ -365,7 +365,7 @@ async def main() -> None:
                 logger.error(f"Failed to fetch AI Competition questions: {e}")
 
             if not minibench_questions and not ai_competition_questions:
-                raise RuntimeError("Failed to fetch questions from both tournaments")
+                logger.info("No open questions found in either tournament.")
 
             # Combine and deduplicate questions by ID
             all_questions = minibench_questions + ai_competition_questions
