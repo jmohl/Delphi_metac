@@ -32,6 +32,7 @@ from forecast_bot.questions import (
     MetaculusQuestion,
     MultipleChoiceQuestion,
     NumericQuestion,
+    convert_forecasting_tools_question,
 )
 from forecast_bot.research import ResearchModule
 from forecast_bot.forecast import ForecastModule
@@ -251,7 +252,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--tournament-id",
-        help="Tournament id or slug for --mode tournament.",
+        help="(Optional) Tournament id or slug for --mode tournament. If omitted, uses both CURRENT_MINIBENCH_ID and CURRENT_AI_COMPETITION_ID.",
     )
     parser.add_argument(
         "--config",
@@ -329,9 +330,55 @@ async def main() -> None:
             raise ValueError("No URLs provided for --mode urls.")
         questions = [bot.metaculus.get_question_by_url(u) for u in args.urls]
     else:  # tournament
-        if not args.tournament_id:
-            raise ValueError("Tournament id required for --mode tournament.")
-        questions = bot.metaculus.get_questions_from_tournament(args.tournament_id)
+        if args.tournament_id:
+            # Legacy behavior: single tournament using custom client
+            logger.info(f"Fetching questions from tournament {args.tournament_id}...")
+            questions = bot.metaculus.get_questions_from_tournament(args.tournament_id)
+        else:
+            # New behavior: dual tournaments using forecasting_tools
+            from forecasting_tools import MetaculusClient as FTMetaculusClient
+
+            # Instantiate the forecasting_tools client
+            ft_client = FTMetaculusClient()
+
+            minibench_questions = []
+            ai_competition_questions = []
+
+            try:
+                logger.info("Fetching questions from Minibench tournament...")
+                ft_minibench = ft_client.get_all_open_questions_from_tournament(
+                    FTMetaculusClient.CURRENT_MINIBENCH_ID
+                )
+                minibench_questions = [convert_forecasting_tools_question(q) for q in ft_minibench]
+                logger.info(f"Retrieved {len(minibench_questions)} questions from Minibench")
+            except Exception as e:
+                logger.error(f"Failed to fetch Minibench questions: {e}")
+
+            try:
+                logger.info("Fetching questions from AI Competition tournament...")
+                ft_ai_comp = ft_client.get_all_open_questions_from_tournament(
+                    FTMetaculusClient.CURRENT_AI_COMPETITION_ID
+                )
+                ai_competition_questions = [convert_forecasting_tools_question(q) for q in ft_ai_comp]
+                logger.info(f"Retrieved {len(ai_competition_questions)} questions from AI Competition")
+            except Exception as e:
+                logger.error(f"Failed to fetch AI Competition questions: {e}")
+
+            if not minibench_questions and not ai_competition_questions:
+                raise RuntimeError("Failed to fetch questions from both tournaments")
+
+            # Combine and deduplicate questions by ID
+            all_questions = minibench_questions + ai_competition_questions
+            seen_ids = set()
+            questions = []
+            for q in all_questions:
+                if q.id not in seen_ids:
+                    questions.append(q)
+                    seen_ids.add(q.id)
+                else:
+                    logger.debug(f"Skipping duplicate question ID {q.id}")
+
+            logger.info(f"Total unique questions from both tournaments: {len(questions)}")
 
     logger.info(f"Loaded {len(questions)} question(s) to forecast.")
 

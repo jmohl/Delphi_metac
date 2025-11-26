@@ -9,6 +9,48 @@ ForecastType = Literal["binary", "numeric", "multiple_choice", "discrete"]
 PredictedOptionList = dict[str, float]
 
 
+def convert_forecasting_tools_question(ft_question: Any) -> "MetaculusQuestion":
+    """
+    Convert a forecasting_tools MetaculusQuestion to our custom MetaculusQuestion format.
+
+    The forecasting_tools library uses different attribute names:
+    - id_of_question -> id
+    - id_of_post -> post_id
+    """
+    # Build the data dict for our MetaculusQuestion.from_api() method
+    data = {
+        "id": ft_question.id_of_question,
+        "post_id": ft_question.id_of_post,
+        "type": ft_question.question_type,
+        "page_url": ft_question.page_url,
+        "title": ft_question.question_text,
+        "resolution_criteria": ft_question.resolution_criteria or "",
+        "fine_print": ft_question.fine_print or "",
+        "description": ft_question.background_info or "",
+    }
+
+    # Add type-specific fields
+    if ft_question.question_type == "numeric":
+        data["possibilities"] = {
+            "scale": {
+                "min": ft_question.lower_bound,
+                "max": ft_question.upper_bound,
+                "open_lower_bound": ft_question.open_lower_bound,
+                "open_upper_bound": ft_question.open_upper_bound,
+                "unit": getattr(ft_question, "unit_of_measure", None),
+            }
+        }
+    elif ft_question.question_type in ("multiple_choice", "discrete"):
+        # For multiple choice, we'd need to extract options from the API JSON
+        # The forecasting_tools question might have this in api_json
+        if hasattr(ft_question, "api_json") and ft_question.api_json:
+            data["options"] = ft_question.api_json.get("options")
+            if ft_question.question_type == "discrete":
+                data["possibilities"] = ft_question.api_json.get("possibilities", {})
+
+    return MetaculusQuestion.from_api(data, post_id=ft_question.id_of_post)
+
+
 @dataclass
 class MetaculusQuestion:
     """

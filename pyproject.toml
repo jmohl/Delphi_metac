@@ -15,6 +15,7 @@ openai = "^1.57.4"
 python-dotenv = "^1.0.1"
 anthropic = "^0.71.0"
 nest-asyncio = "^1.6.0"
+forecasting-tools = "^0.2.74"
 
 
 [tool.poetry.group.dev.dependencies]

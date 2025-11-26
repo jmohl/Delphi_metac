@@ -26,7 +26,8 @@ This rest of this README covers the runtime flow, configuration surface, and how
 - Question intake (`forecast_bot/main.py`):
   - `--mode test_questions` (default) loads `TEST_QUESTION_URLS`.
   - `--mode urls --urls <url...>` pulls specific Metaculus question URLs.
-  - `--mode tournament --tournament-id <id_or_slug>` fetches open tournament questions via `MetaculusClient`.
+  - `--mode tournament` (no --tournament-id) fetches open questions from both Minibench and AI Competition tournaments via `forecasting_tools.MetaculusApi`.
+  - `--mode tournament --tournament-id <id_or_slug>` fetches open tournament questions from a specific tournament via `MetaculusClient`.
 - Per‑question orchestration (`DelphiV2Bot.forecast_question`):
   - `Notepad` builds queues of research bots, forecasters, and end‑to‑end forecasters based on counts in `BotConfig`.
   - Research path: each `ResearchBotConfig` runs `_generate_news` (single or multi web search) then fills a research prompt; results feed the forecasters.
@@ -63,7 +64,10 @@ poetry run python -m forecast_bot.main --mode test_questions
 
 Common variations:
 - Specific URLs: `poetry run python -m forecast_bot.main --mode urls --urls https://www.metaculus.com/questions/123/ ...`
-- Tournament: `poetry run python -m forecast_bot.main --mode tournament --tournament-id <id_or_slug>`
+- Tournament (dual): `poetry run python -m forecast_bot.main --mode tournament`
+  - Automatically fetches from both CURRENT_MINIBENCH_ID and CURRENT_AI_COMPETITION_ID
+- Tournament (single): `poetry run python -m forecast_bot.main --mode tournament --tournament-id <id_or_slug>`
+  - Use --tournament-id to override and fetch from a specific tournament
 - Custom config: `poetry run python -m forecast_bot.main --config path/to/my_configs.py`
 - Publish forecasts/comments: add `--publish` (requires valid `METACULUS_TOKEN`).
 
@@ -76,6 +80,15 @@ If you run `python forecast_bot/main.py` directly, set `PYTHONPATH=.` so imports
   - OpenRouter: `OPENROUTER_API_KEY` (+ optional `OPENROUTER_BASE_URL`, `OPENROUTER_REFERRER`, `OPENROUTER_TITLE`) — required for the default Gemini models
   - Anthropic: `ANTHROPIC_API_KEY` (if using Claude models)
 - Place them in `.env`; `load_dotenv()` in `main.py` reads them automatically.
+
+## Dependencies
+
+The bot uses a hybrid approach for Metaculus API access:
+
+- **forecasting_tools**: Used for tournament mode to access season-updated tournament IDs (`CURRENT_MINIBENCH_ID`, `CURRENT_AI_COMPETITION_ID`). Automatically updated by the forecasting_tools maintainers each season.
+- **Custom MetaculusClient**: Lightweight client used for all other operations (URL fetching, posting forecasts/comments). No dependency on forecasting_tools for core operations.
+
+This design ensures automatic tournament targeting while maintaining a minimal dependency footprint.
 
 ## Outputs
 - Reports: JSON files in `forecast_bot/reports` by default (e.g., `report_<question_id>_<timestamp>.json`) containing the question snapshot, aggregated prediction, unified explanation, research texts, and forecaster reasonings.
