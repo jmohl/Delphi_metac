@@ -315,6 +315,10 @@ async def main() -> None:
     if args.publish:
         bot_config.publish_reports_to_metaculus = True
 
+    # In tournament mode, always skip previously forecasted questions
+    if args.mode == "tournament":
+        bot_config.skip_previously_forecasted_questions = True
+
     bot = DelphiV2Bot(
         bot_config=bot_config,
         research_configs=research_configs,
@@ -381,6 +385,17 @@ async def main() -> None:
             logger.info(f"Total unique questions from both tournaments: {len(questions)}")
 
     logger.info(f"Loaded {len(questions)} question(s) to forecast.")
+
+    # Filter out already-forecasted questions if the flag is set
+    if bot.config.skip_previously_forecasted_questions:
+        unforecasted_questions = [
+            question for question in questions if not question.already_forecasted
+        ]
+        if len(questions) != len(unforecasted_questions):
+            logger.info(
+                f"Skipping {len(questions) - len(unforecasted_questions)} previously forecasted questions"
+            )
+        questions = unforecasted_questions
 
     reports = []
     for idx, q in enumerate(questions):

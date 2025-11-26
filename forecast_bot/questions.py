@@ -29,6 +29,14 @@ def convert_forecasting_tools_question(ft_question: Any) -> "MetaculusQuestion":
         "description": ft_question.background_info or "",
     }
 
+    # Preserve already_forecasted field from forecasting_tools question
+    if hasattr(ft_question, "already_forecasted"):
+        data["my_forecasts"] = {
+            "latest": {
+                "forecast_values": {} if ft_question.already_forecasted else None
+            }
+        }
+
     # Add type-specific fields
     if ft_question.question_type == "numeric":
         data["possibilities"] = {
@@ -71,6 +79,7 @@ class MetaculusQuestion:
     open_lower_bound: bool = False
     open_upper_bound: bool = False
     unit: Optional[str] = None
+    already_forecasted: Optional[bool] = None
 
     @classmethod
     def from_api(cls, data: dict[str, Any], post_id: int | None = None) -> "MetaculusQuestion":
@@ -90,6 +99,14 @@ class MetaculusQuestion:
         fine_print = data.get("fine_print") or data.get("finePrint") or ""
         background_info = data.get("description") or data.get("details") or ""
 
+        # Check if question has already been forecasted by the authenticated user
+        already_forecasted = False
+        try:
+            forecast_values = data.get("my_forecasts", {}).get("latest", {}).get("forecast_values")
+            already_forecasted = forecast_values is not None
+        except Exception:
+            already_forecasted = False
+
         options = _extract_options(data)
         bounds = _extract_numeric_bounds(data)
 
@@ -103,6 +120,7 @@ class MetaculusQuestion:
                 resolution_criteria=resolution_criteria,
                 fine_print=fine_print,
                 background_info=background_info,
+                already_forecasted=already_forecasted,
             )
 
         if question_type in ("multiple_choice", "discrete"):
@@ -120,6 +138,7 @@ class MetaculusQuestion:
                 upper_bound=bounds[1],
                 open_lower_bound=bounds[2],
                 open_upper_bound=bounds[3],
+                already_forecasted=already_forecasted,
             )
 
         lower_bound, upper_bound, open_lower_bound, open_upper_bound, unit = bounds
@@ -137,6 +156,7 @@ class MetaculusQuestion:
             open_lower_bound=open_lower_bound,
             open_upper_bound=open_upper_bound,
             unit=unit,
+            already_forecasted=already_forecasted,
         )
 
 
