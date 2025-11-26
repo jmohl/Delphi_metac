@@ -27,7 +27,7 @@ def get_default_configs() -> tuple[BotConfig, list[ResearchBotConfig], list[Fore
         use_research_summary_to_forecast=False,
         publish_reports_to_metaculus=True,
         folder_to_save_reports_to="forecast_bot/reports",
-        skip_previously_forecasted_questions=False,
+        skip_previously_forecasted_questions=True,
         enable_end_to_end_forecaster=True,
         end_to_end_forecasters_per_question=1,
         llms={
