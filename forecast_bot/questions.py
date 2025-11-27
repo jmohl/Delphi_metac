@@ -51,10 +51,27 @@ def convert_forecasting_tools_question(ft_question: Any) -> "MetaculusQuestion":
     elif ft_question.question_type in ("multiple_choice", "discrete"):
         # For multiple choice, we'd need to extract options from the API JSON
         # The forecasting_tools question might have this in api_json
-        if hasattr(ft_question, "api_json") and ft_question.api_json:
-            data["options"] = ft_question.api_json.get("options")
-            if ft_question.question_type == "discrete":
-                data["possibilities"] = ft_question.api_json.get("possibilities", {})
+        
+        # Priority 1: Use the parsed options from forecasting_tools if available
+        if hasattr(ft_question, "options") and ft_question.options:
+            data["options"] = ft_question.options
+
+        # Priority 2: Try to extract from api_json (fallback)
+        elif hasattr(ft_question, "api_json") and ft_question.api_json:
+            # Check top level (rare)
+            options = ft_question.api_json.get("options")
+            # Check nested question object (common for Post objects)
+            if not options and "question" in ft_question.api_json:
+                options = ft_question.api_json["question"].get("options")
+            
+            data["options"] = options
+
+        # For discrete questions, we might need possibilities for scaling info
+        if ft_question.question_type == "discrete" and hasattr(ft_question, "api_json") and ft_question.api_json:
+             possibilities = ft_question.api_json.get("possibilities")
+             if not possibilities and "question" in ft_question.api_json:
+                 possibilities = ft_question.api_json["question"].get("possibilities")
+             data["possibilities"] = possibilities or {}
 
     return MetaculusQuestion.from_api(data, post_id=ft_question.id_of_post)
 
