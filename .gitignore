@@ -171,8 +171,8 @@ cython_debug/
 
 # MacOS
 .DS_Store
-*.txt
-*.json
+#*.txt
+#*.json
 
 # Allow txt and json files in forecast_bot/reports
 #!forecast_bot/reports/*.txt

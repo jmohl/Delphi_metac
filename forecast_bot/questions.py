@@ -39,15 +39,36 @@ def convert_forecasting_tools_question(ft_question: Any) -> "MetaculusQuestion":
 
     # Add type-specific fields
     if ft_question.question_type == "numeric":
+        # Get bounds, checking both the question attributes and api_json
+        lower_bound = ft_question.lower_bound
+        upper_bound = ft_question.upper_bound
+
+        # If bounds are None, try to get them from api_json
+        if (lower_bound is None or upper_bound is None) and hasattr(ft_question, "api_json") and ft_question.api_json:
+            question_data = ft_question.api_json.get("question", {})
+            scaling = question_data.get("scaling", {})
+            if "range_min" in scaling:
+                lower_bound = scaling["range_min"]
+            if "range_max" in scaling:
+                upper_bound = scaling["range_max"]
+
         data["possibilities"] = {
             "scale": {
-                "min": ft_question.lower_bound,
-                "max": ft_question.upper_bound,
+                "min": lower_bound,
+                "max": upper_bound,
                 "open_lower_bound": ft_question.open_lower_bound,
                 "open_upper_bound": ft_question.open_upper_bound,
                 "unit": getattr(ft_question, "unit_of_measure", None),
             }
         }
+
+        # Extract continuous_range from api_json if available (for logarithmic scale questions)
+        if (lower_bound is not None and upper_bound is not None and
+            hasattr(ft_question, "api_json") and ft_question.api_json):
+            question_data = ft_question.api_json.get("question", {})
+            scaling = question_data.get("scaling", {})
+            if "continuous_range" in scaling:
+                data["continuous_range"] = scaling["continuous_range"]
     elif ft_question.question_type in ("multiple_choice", "discrete"):
         # For multiple choice, we'd need to extract options from the API JSON
         # The forecasting_tools question might have this in api_json
@@ -124,6 +145,7 @@ class MetaculusQuestion:
             )
 
         if question_type in ("multiple_choice", "discrete"):
+            lower_bound, upper_bound, open_lower_bound, open_upper_bound, unit, continuous_range = bounds
             return MultipleChoiceQuestion(
                 id=question_id,
                 post_id=post_identifier,
@@ -134,14 +156,14 @@ class MetaculusQuestion:
                 fine_print=fine_print,
                 background_info=background_info,
                 options=options or [],
-                lower_bound=bounds[0],
-                upper_bound=bounds[1],
-                open_lower_bound=bounds[2],
-                open_upper_bound=bounds[3],
+                lower_bound=lower_bound,
+                upper_bound=upper_bound,
+                open_lower_bound=open_lower_bound,
+                open_upper_bound=open_upper_bound,
                 already_forecasted=already_forecasted,
             )
 
-        lower_bound, upper_bound, open_lower_bound, open_upper_bound, unit = bounds
+        lower_bound, upper_bound, open_lower_bound, open_upper_bound, unit, continuous_range = bounds
         return NumericQuestion(
             id=question_id,
             post_id=post_identifier,
@@ -156,6 +178,7 @@ class MetaculusQuestion:
             open_lower_bound=open_lower_bound,
             open_upper_bound=open_upper_bound,
             unit=unit,
+            continuous_range=continuous_range,
             already_forecasted=already_forecasted,
         )
 
@@ -187,6 +210,7 @@ class NumericQuestion(MetaculusQuestion):
     open_lower_bound: bool = False
     open_upper_bound: bool = False
     unit: Optional[str] = None
+    continuous_range: Optional[list[float]] = None  # For logarithmic scale questions
 
 
 @dataclass
@@ -229,6 +253,7 @@ class NumericDistribution:
         upper_bound: float,
         open_lower_bound: bool = False,
         open_upper_bound: bool = False,
+        continuous_range: list[float] | None = None,
         num_points: int = 201,
     ) -> list[float]:
         """
@@ -244,6 +269,7 @@ class NumericDistribution:
             upper_bound: Upper bound of the question
             open_lower_bound: Whether the lower bound is open (exclusive)
             open_upper_bound: Whether the upper bound is open (exclusive)
+            continuous_range: Optional list of bin values for logarithmic scale questions
             num_points: Number of points in the CDF (default 201)
         """
         sorted_cdf = self.get_cdf()
@@ -289,8 +315,14 @@ class NumericDistribution:
                 our_values.append(upper_bound)
                 our_percentiles.append(1.0)
 
-        # Create evenly spaced grid of values from lower to upper bound
-        value_grid = np.linspace(lower_bound, upper_bound, num=num_points)
+        # Create value grid - use continuous_range if available (for log scale),
+        # otherwise fall back to linear spacing
+        if continuous_range is not None and len(continuous_range) == num_points:
+            # Use the provided continuous_range for logarithmic scale questions
+            value_grid = np.array(continuous_range)
+        else:
+            # Fall back to linear spacing
+            value_grid = np.linspace(lower_bound, upper_bound, num=num_points)
 
         # Interpolate to get CDF values (percentiles) at each grid point
         # np.interp requires x-coordinates (our_values) to be increasing
@@ -423,13 +455,17 @@ def _normalize_numeric_forecast(
     """
     if isinstance(forecast, NumericDistribution):
         if question.lower_bound is None or question.upper_bound is None:
-            raise ValueError("NumericQuestion must have lower_bound and upper_bound set")
+            raise ValueError(
+                f"NumericQuestion must have lower_bound and upper_bound set. "
+                f"Question ID: {question.id}, bounds: [{question.lower_bound}, {question.upper_bound}]"
+            )
 
         return forecast.to_metaculus_cdf(
             lower_bound=question.lower_bound,
             upper_bound=question.upper_bound,
             open_lower_bound=question.open_lower_bound,
             open_upper_bound=question.open_upper_bound,
+            continuous_range=question.continuous_range,
         )
 
     if isinstance(forecast, list):
@@ -543,13 +579,14 @@ def _extract_options(data: dict[str, Any]) -> list[str] | None:
     return options or None
 
 
-def _extract_numeric_bounds(data: dict[str, Any]) -> tuple[Optional[float], Optional[float], bool, bool, Optional[str]]:
+def _extract_numeric_bounds(data: dict[str, Any]) -> tuple[Optional[float], Optional[float], bool, bool, Optional[str], Optional[list[float]]]:
     lower_bound = None
     upper_bound = None
     # Start with top-level flags if present; some API payloads expose them outside of possibilities/scale
     open_lower = bool(data.get("open_lower_bound", False))
     open_upper = bool(data.get("open_upper_bound", False))
     unit = None
+    continuous_range = None
 
     possibilities = data.get("possibilities", {})
     if isinstance(possibilities, dict):
@@ -568,7 +605,28 @@ def _extract_numeric_bounds(data: dict[str, Any]) -> tuple[Optional[float], Opti
             open_upper = bool(scale.get("open_max", scale.get("open_upper_bound", open_upper)))
             unit = scale.get("unit")
 
-    return lower_bound, upper_bound, open_lower, open_upper, unit
+    # Check top-level scaling field (used when possibilities is None)
+    scaling = data.get("scaling")
+    if isinstance(scaling, dict):
+        # Extract bounds from scaling if not already set
+        if lower_bound is None:
+            lower_bound = scaling.get("range_min")
+        if upper_bound is None:
+            upper_bound = scaling.get("range_max")
+
+        # Extract open bound flags from scaling
+        open_lower = bool(scaling.get("open_lower_bound", open_lower))
+        open_upper = bool(scaling.get("open_upper_bound", open_upper))
+
+        # Extract continuous_range from scaling
+        if continuous_range is None:
+            continuous_range = scaling.get("continuous_range")
+
+    # Extract continuous_range from top-level or from data
+    if continuous_range is None:
+        continuous_range = data.get("continuous_range")
+
+    return lower_bound, upper_bound, open_lower, open_upper, unit, continuous_range
 
 
 __all__ = [

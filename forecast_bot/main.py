@@ -45,10 +45,11 @@ load_dotenv()
 
 
 TEST_QUESTION_URLS = [
-    "https://www.metaculus.com/questions/578/human-extinction-by-2100/",
-    #"https://www.metaculus.com/questions/14333/age-of-oldest-human-as-of-2100/",
+    #"https://www.metaculus.com/questions/578/human-extinction-by-2100/",
+    "https://www.metaculus.com/questions/14333/age-of-oldest-human-as-of-2100/",
     #"https://www.metaculus.com/questions/22427/number-of-new-leading-ai-labs/",
     #"https://www.metaculus.com/c/diffusion-community/38880/how-many-us-labor-strikes-due-to-ai-in-2029/",
+    #"https://www.metaculus.com/questions/39781/deaths-from-ebola-kasai-province-outbreak-in-2025/"
 ]
 
 
@@ -329,6 +330,7 @@ async def main() -> None:
     questions: list[MetaculusQuestion] = []
     if args.mode == "test_questions":
         questions = [bot.metaculus.get_question_by_url(u) for u in TEST_QUESTION_URLS]
+        bot_config.skip_previously_forecasted_questions = False
     elif args.mode == "urls":
         if not args.urls:
             raise ValueError("No URLs provided for --mode urls.")
