@@ -286,23 +286,30 @@ class ForecastModule:
 
         # Fallback to regex parsing
         probabilities: PredictedOptionList = {}
+        
+        # Handle empty options list
+        if not options:
+            logger.error("Cannot parse multiple choice prediction: options list is empty")
+            raise ValueError("Cannot parse multiple choice prediction: options list is empty")
+        
         for i, opt in enumerate(options):
-            # Pattern 1: Exact option name (e.g., "0 or 1: 0.25")
-            pattern1 = rf"{re.escape(opt)}\s*:\s*([0-9]+(?:\.[0-9]+)?)\s*%?"
+            # Pattern 1: Exact option name (e.g., "0 or 1: 0.25" or "Decreases: ~0.72")
+            # Updated to handle tildes and approximate values
+            pattern1 = rf"{re.escape(opt)}\s*:\s*~?\s*([0-9]+(?:\.[0-9]+)?)\s*%?"
             match = re.search(pattern1, reasoning, flags=re.IGNORECASE)
             if match:
                 probabilities[opt] = float(match.group(1)) / 100.0 if float(match.group(1)) > 1 else float(match.group(1))
                 continue
 
             # Pattern 2: Option with underscore (e.g., "Option_A: 0.25")
-            pattern2 = rf"Option[_\s]?{chr(65 + i)}\s*:\s*([0-9]+(?:\.[0-9]+)?)\s*%?"
+            pattern2 = rf"Option[_\s]?{chr(65 + i)}\s*:\s*~?\s*([0-9]+(?:\.[0-9]+)?)\s*%?"
             match = re.search(pattern2, reasoning, flags=re.IGNORECASE)
             if match:
                 probabilities[opt] = float(match.group(1)) / 100.0 if float(match.group(1)) > 1 else float(match.group(1))
                 continue
 
             # Pattern 3: Option with number (e.g., "Option 1: 0.25")
-            pattern3 = rf"Option[_\s]?{i + 1}\s*:\s*([0-9]+(?:\.[0-9]+)?)\s*%?"
+            pattern3 = rf"Option[_\s]?{i + 1}\s*:\s*~?\s*([0-9]+(?:\.[0-9]+)?)\s*%?"
             match = re.search(pattern3, reasoning, flags=re.IGNORECASE)
             if match:
                 probabilities[opt] = float(match.group(1)) / 100.0 if float(match.group(1)) > 1 else float(match.group(1))
@@ -325,6 +332,17 @@ class ForecastModule:
         from forecast_bot.llm_wrappers import GeneralLlm
         from forecast_bot.prompts import MULTIPLE_CHOICE_PARSING_INSTRUCTIONS
 
+        # Handle empty options list
+        if not options:
+            raise ValueError("Cannot parse multiple choice prediction: options list is empty")
+
+        # Build example with actual option names, handling empty/short lists
+        example_options = ""
+        if len(options) > 0:
+            example_options = f'- "{options[0]}: 0.95"'
+            if len(options) > 1:
+                example_options += f' or "{options[1]}: 0.04"'
+
         parsing_prompt = f"""Extract the probability predictions from the following forecaster reasoning.
 
 {MULTIPLE_CHOICE_PARSING_INSTRUCTIONS.format(options=', '.join(options))}
@@ -332,7 +350,9 @@ class ForecastModule:
 The forecaster's output may use formats like:
 - "Option_A: 0.95" or "Option_B: 0.04"
 - "Option 1: 0.95" or "Option 2: 0.04"
-- "{options[0]}: 0.95" or "{options[1]}: 0.04"
+{example_options}
+
+IMPORTANT: The forecaster may use special characters like '~' (tilde) to indicate approximate values (e.g., "~0.72" or "Decreases: ~0.72"). Remove all special characters and extract only the numeric probability value. Convert percentages to decimals (e.g., "72%" becomes 0.72, "~0.72" becomes 0.72).
 
 Return ONLY a JSON object mapping each option name to its probability as a decimal between 0 and 1.
 Example format: {{"option1": 0.25, "option2": 0.50, "option3": 0.25}}
