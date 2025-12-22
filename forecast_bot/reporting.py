@@ -35,8 +35,32 @@ class ForecastReport:
     forecaster_reasonings: list[str] = field(default_factory=list)
 
     def to_json(self) -> str:
+        from forecast_bot.questions import NumericDistribution, NumericQuestion
+
         payload = asdict(self)
         payload["question"] = asdict(self.question)
+
+        # If prediction is a NumericDistribution, expand it to full 201-point CDF
+        if isinstance(self.prediction, NumericDistribution) and isinstance(self.question, NumericQuestion):
+            # Convert to the full 201-point CDF that Metaculus expects
+            if self.question.lower_bound is not None and self.question.upper_bound is not None:
+                full_cdf_values = self.prediction.to_metaculus_cdf(
+                    lower_bound=self.question.lower_bound,
+                    upper_bound=self.question.upper_bound,
+                    open_lower_bound=self.question.open_lower_bound,
+                    open_upper_bound=self.question.open_upper_bound,
+                    continuous_range=self.question.continuous_range,
+                )
+                # Store as list of percentile objects matching Metaculus format
+                payload["prediction"] = {
+                    "cdf": [
+                        {"value": self.question.continuous_range[i] if self.question.continuous_range else
+                                 self.question.lower_bound + (self.question.upper_bound - self.question.lower_bound) * i / 200,
+                         "percentile": full_cdf_values[i]}
+                        for i in range(len(full_cdf_values))
+                    ]
+                }
+
         return json.dumps(payload, indent=2, default=str)
 
 

@@ -123,8 +123,8 @@ Before answering you write:
 
 You write your rationale remembering that good forecasters put extra weight on the status quo outcome since the world changes slowly most of the time.
 
-However, you are also a strong forecaster and participating in a tournament. Given this context, you know that making overly conservative predictions will not lead to victory.
-To account for this you make small adjustments to your predictions to make them slightly more confident in one direction or the other.
+However, you are also a strong forecaster and participating in a tournament. In this context, you should be confident in your predictions but hesitant to predict extreme outcomes.
+Because of the scoring rules applied to the tournament, the punishment for a wrong answer is more severe than being slightly less confident on a correct answer.
 
 Keep in mind that certain outcomes are fairly predictable. Some examples are:
 - Generally, metaculus forecasts change slowly unless there is major news.
@@ -164,8 +164,8 @@ Before answering you write:
 (c) A description of an scenario that results in an unexpected outcome.
 
 You write your rationale remembering that (1) good forecasters put extra weight on the status quo outcome since the world changes slowly most of the time, and (2) good forecasters leave some moderate probability on most options to account for unexpected outcomes.
-However, you are also a strong forecaster and participating in a tournament. Given this context, you know that making overly conservative predictions will not lead to victory.
-To account for this you make small adjustments to your predictions to make them slightly more confident in one direction or the other.
+However, you are also a strong forecaster and participating in a tournament. In this context, you should be confident in your predictions but hesitant to predict extreme outcomes.
+Because of the scoring rules applied to the tournament, the punishment for a wrong answer is more severe than being slightly less confident on a correct answer.
 
 Keep in mind that certain outcomes are fairly predictable. Some examples are:
 - Generally, metaculus forecasts change slowly unless there is major news. Without major news they are likely stable over the course of 1-2 weeks.
@@ -228,8 +228,8 @@ Before answering you write:
 (f) A brief description of an unexpected scenario that results in a high outcome.
 
 You remind yourself that good forecasters are humble and set wide 90/10 confidence intervals to account for unknown unknowns.
-However, you are also a strong forecaster and participating in a tournament. Given this context, you know that making overly conservative predictions will not lead to victory.
-To account for this you make small adjustments to your predictions to make them slightly more confident in one direction or the other.
+However, you are also a strong forecaster and participating in a tournament. In this context, you should be confident in your predictions but hesitant to predict extreme outcomes.
+Because of the scoring rules applied to the tournament, the punishment for a wrong answer is more severe than being slightly less confident on a correct answer.
 Numeric questions are often highly predictable based on trends and expert forecasts, and if this is the case for this question you should take that into account and narrow your intervals accordingly.
 
 IMPORTANT: If your thinking indicates that the question can already be resolved you should be highly suspicious of this interpretation. It is very rare for questions to remain open after resolution criteria are met. Carefully re-examine the resolution criteria and your research to be sure.
@@ -290,8 +290,8 @@ Before answering you write:
 
 You write your rationale remembering that good forecasters put extra weight on the status quo outcome since the world changes slowly most of the time.
 
-However, you are also a strong forecaster and participating in a tournament. Given this context, you know that making overly conservative predictions will not lead to victory.
-To account for this you make small adjustments to your predictions to make them slightly more confident in one direction or the other.
+However, you are also a strong forecaster and participating in a tournament. In this context, you should be confident in your predictions but hesitant to predict extreme outcomes.
+Because of the scoring rules applied to the tournament, the punishment for a wrong answer is more severe than being slightly less confident on a correct answer.
 
 Keep in mind that certain outcomes are fairly predictable. Some examples are:
 - Generally, metaculus forecasts change slowly unless there is major news.
@@ -348,8 +348,8 @@ Before answering you write:
 (g) A brief description of an unexpected scenario that results in a high outcome
 
 You remind yourself that good forecasters are humble and set wide 90/10 confidence intervals to account for unknown unknowns.
-However, you are also a strong forecaster and participating in a tournament. Given this context, you know that making overly conservative predictions will not lead to victory.
-To account for this you make small adjustments to your predictions to make them slightly more confident in one direction or the other.
+However, you are also a strong forecaster and participating in a tournament. In this context, you should be confident in your predictions but hesitant to predict extreme outcomes.
+Because of the scoring rules applied to the tournament, the punishment for a wrong answer is more severe than being slightly less confident on a correct answer.
 Numeric questions are often highly predictable based on trends and expert forecasts, and if this is the case for this question you should take that into account and narrow your intervals accordingly.
 
 IMPORTANT: If your thinking indicates that the question can already be resolved you should be highly suspicious of this interpretation. It is very rare for questions to remain open after resolution criteria are met. Carefully re-examine the resolution criteria and your research to be sure.
@@ -398,8 +398,8 @@ Before answering you write:
 (d) A description of a scenario that results in an unexpected outcome
 
 You write your rationale remembering that (1) good forecasters put extra weight on the status quo outcome since the world changes slowly most of the time, and (2) good forecasters leave some moderate probability on most options to account for unexpected outcomes.
-However, you are also a strong forecaster and participating in a tournament. Given this context, you know that making overly conservative predictions will not lead to victory.
-To account for this you make small adjustments to your predictions to make them slightly more confident in one direction or the other.
+However, you are also a strong forecaster and participating in a tournament. In this context, you should be confident in your predictions but hesitant to predict extreme outcomes.
+Because of the scoring rules applied to the tournament, the punishment for a wrong answer is more severe than being slightly less confident on a correct answer.
 
 Keep in mind that certain outcomes are fairly predictable. Some examples are:
 - Generally, metaculus forecasts change slowly unless there is major news. Without major news they are likely stable over the course of 1-2 weeks.

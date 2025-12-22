@@ -8,6 +8,11 @@ import numpy as np
 ForecastType = Literal["binary", "numeric", "multiple_choice", "discrete"]
 PredictedOptionList = dict[str, float]
 
+# Metaculus CDF constraint constants
+MIN_CDF_STEP = 5e-05  # Minimum monotonic increase between CDF points
+MAX_NUMERIC_PMF_VALUE = 0.2  # Maximum PMF value (before wiggle room)
+DEFAULT_CDF_SIZE = 201  # Standard number of CDF points
+
 
 def convert_forecasting_tools_question(ft_question: Any) -> "MetaculusQuestion":
     """
@@ -230,6 +235,31 @@ class NumericQuestion(MetaculusQuestion):
     continuous_range: Optional[list[float]] = None  # For logarithmic scale questions
 
 
+def get_max_pmf_value(cdf_size: int, include_wiggle_room: bool = True) -> float:
+    """
+    Calculate the maximum allowed PMF value for a given CDF size.
+
+    The cap depends on inbound_outcome_count (0.2 if it is the default 200).
+    Wiggle room of 0.95 is applied by default to provide margin for floating point errors.
+
+    Args:
+        cdf_size: Number of points in the CDF
+        include_wiggle_room: Whether to apply 0.95 scaling factor for safety margin
+
+    Returns:
+        Maximum allowed PMF value for interior points
+    """
+    inbound_outcome_count = cdf_size - 1
+    normal_cap = MAX_NUMERIC_PMF_VALUE * (
+        (DEFAULT_CDF_SIZE - 1) / inbound_outcome_count
+    )
+
+    if include_wiggle_room:
+        return normal_cap * 0.95
+    else:
+        return normal_cap
+
+
 @dataclass
 class Percentile:
     """
@@ -278,6 +308,7 @@ class NumericDistribution:
 
         The CDF must comply with Metaculus API constraints:
         - CDF must be monotonically increasing by at least 5e-05 at every step
+        - Individual PMF values must not exceed 0.19 (prevents over-concentration)
         - CDF at lower bound must be 0.0 (if lower bound is closed)
         - CDF at upper bound must be at most 0.999 (if upper bound is open)
 
@@ -345,8 +376,62 @@ class NumericDistribution:
         # np.interp requires x-coordinates (our_values) to be increasing
         cdf_values = np.interp(value_grid, our_values, our_percentiles)
 
+        # Apply maximum PMF constraint to prevent over-concentration
+        # Convert CDF to PMF for capping
+        pmf = np.diff(cdf_values, prepend=0, append=1)
+        max_pmf = get_max_pmf_value(num_points)
+
+        def cap_pmf(scale: float) -> np.ndarray:
+            """
+            Cap interior PMF values while preserving boundary values.
+
+            The first and last PMF values are preserved to maintain proper
+            boundary behavior. Only interior values are subject to capping.
+            """
+            return np.concatenate(
+                [pmf[:1], np.minimum(max_pmf, scale * pmf[1:-1]), pmf[-1:]]
+            )
+
+        def capped_sum(scale: float) -> float:
+            """Calculate sum of capped PMF values."""
+            return float(cap_pmf(scale).sum())
+
+        # Binary search to find scale factor that makes capped PMF sum to 1.0
+        # Initial search space
+        lo = hi = scale = 1.0
+
+        # Expand upper bound until capped sum >= 1.0
+        while capped_sum(hi) < 1.0:
+            hi *= 1.2
+
+        # Binary search for optimal scale (100 iterations for convergence)
+        for _ in range(100):
+            scale = 0.5 * (lo + hi)
+            s = capped_sum(scale)
+            if s < 1.0:
+                lo = scale
+            else:
+                hi = scale
+            # Converged if exactly 1.0 or search space is tiny
+            if s == 1.0 or (hi - lo) < 2e-5:
+                break
+
+        # Apply the final scale and renormalize interior PMF values
+        pmf = cap_pmf(scale)
+        # Renormalize interior values to maintain total mass
+        interior_sum = pmf[1:-1].sum()
+        if interior_sum > 0:
+            # Scale interior PMF to preserve the CDF range
+            pmf[1:-1] *= (cdf_values[-1] - cdf_values[0]) / interior_sum
+
+        # Convert back to CDF space
+        cdf_values = np.cumsum(pmf)[:-1]
+
+        # Round to minimize floating point errors
+        cdf_values = np.round(cdf_values, 10)
+
         # Apply Metaculus constraints
-        min_step = 5e-05
+        min_step = MIN_CDF_STEP
 
         # 1. If lower bound is closed, CDF at lower bound must be 0.0
         if not open_lower_bound:

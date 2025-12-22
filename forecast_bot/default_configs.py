@@ -36,7 +36,7 @@ def get_default_configs() -> tuple[BotConfig, list[ResearchBotConfig], list[Fore
             # LLM for summarizing research reports
             "summarizer": "openrouter/google/gemini-2.5-flash",
             # LLM for aggregating research (not the individual researchers - those are in research configs)
-            "researcher": "openrouter/google/gemini-2.5-flash",
+            "researcher": "openrouter/openai/gpt-5",
             # LLM for parsing and validating predictions
             "parser": "openrouter/google/gemini-2.5-flash",
         },
@@ -53,19 +53,19 @@ def get_default_configs() -> tuple[BotConfig, list[ResearchBotConfig], list[Fore
     # - "heavy": single model web search with more comprehensive results using hardcoded model gpt-5-mini and native web search
     research_configs = [
         # single search bots
-        ResearchBotConfig(
-            name="Lite Search (flash x1)",
-            web_search_mode="lite", #when using lite or heavy, do not need to specify multi_search_models
-            research_prompt_key="default"
-        ),
         # ResearchBotConfig(
-        #     name="Multi Search (5-mini x1)",
-        #     web_search_mode="multi", #multi can be used with a single bot as well, as done here
-        #     research_prompt_key="default", #use default for research prompt if using only 1 model
-        #     multi_search_models=[
-        #         "gpt-5-mini",  # OpenAI native web search
-        #     ]
+        #     name="Lite Search (flash x1)",
+        #     web_search_mode="lite", #when using lite or heavy, do not need to specify multi_search_models
+        #     research_prompt_key="default"
         # ),
+        ResearchBotConfig(
+            name="Multi Search (5-mini x1)",
+            web_search_mode="multi", #multi can be used with a single bot as well, as done here
+            research_prompt_key="default", #use default for research prompt if using only 1 model
+            multi_search_models=[
+                "gpt-5-mini",  # OpenAI native web search
+            ]
+        ),
         # Multi-search with parallel web searches using different models
         # ResearchBotConfig(
         #     name="Multi Search (5-mini + Haiku + Flash)",
@@ -83,20 +83,20 @@ def get_default_configs() -> tuple[BotConfig, list[ResearchBotConfig], list[Fore
     # Forecaster bots will be selected in order based on the number of forecasts per reserach report.
     # If more forecaster bots are needed than provided here, the cycle will repeat from the start of the list.
     forecaster_configs = [
-        ForecasterConfig(
-            name="Gemini flash",
-            model="openrouter/google/gemini-2.5-flash",
-            binary_prompt_key="default",
-            numeric_prompt_key="default",
-            multiple_choice_prompt_key="default"
-        ),
         # ForecasterConfig(
-        #     name="GPT-5",
-        #     model="openrouter/openai/gpt-5",
+        #     name="Gemini flash",
+        #     model="openrouter/google/gemini-2.5-flash",
         #     binary_prompt_key="default",
         #     numeric_prompt_key="default",
         #     multiple_choice_prompt_key="default"
-        # )
+        # ),
+        ForecasterConfig(
+            name="GPT-5",
+            model="openrouter/openai/gpt-5",
+            binary_prompt_key="default",
+            numeric_prompt_key="default",
+            multiple_choice_prompt_key="default"
+        )
     ]
 
     # End-to-end forecaster configurations. -------------------
@@ -113,8 +113,8 @@ def get_default_configs() -> tuple[BotConfig, list[ResearchBotConfig], list[Fore
         #     multiple_choice_prompt_key="default"
         # ),
         EndToEndForecasterConfig(
-            name="GPT-5.1 End-to-End",
-            model="gpt-5.1",
+            name="GPT-5.2 End-to-End",
+            model="gpt-5.2",
             reasoning_effort="medium", #medium is good
             binary_prompt_key="default",
             numeric_prompt_key="default",
