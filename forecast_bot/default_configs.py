@@ -22,8 +22,8 @@ def get_default_configs() -> tuple[BotConfig, list[ResearchBotConfig], list[Fore
     # Set both research_reports_per_question and predictions_per_research_report to 0
     # to run in end-to-end-only mode (requires end-to-end forecasters configured below).
     bot_config = BotConfig(
-        research_reports_per_question=0,
-        predictions_per_research_report=0,
+        research_reports_per_question=1,
+        predictions_per_research_report=2,
         use_research_summary_to_forecast=False,
         publish_reports_to_metaculus=True,
         folder_to_save_reports_to="forecast_bot/reports",
@@ -93,6 +93,13 @@ def get_default_configs() -> tuple[BotConfig, list[ResearchBotConfig], list[Fore
         ForecasterConfig(
             name="GPT-5",
             model="openrouter/openai/gpt-5",
+            binary_prompt_key="default",
+            numeric_prompt_key="default",
+            multiple_choice_prompt_key="default"
+        ),
+        ForecasterConfig(
+            name="sonnet-4.5",
+            model="openrouter/anthropic/claude-sonnet-4.5",
             binary_prompt_key="default",
             numeric_prompt_key="default",
             multiple_choice_prompt_key="default"
