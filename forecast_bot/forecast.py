@@ -362,7 +362,11 @@ Forecaster reasoning:
 
 JSON output:"""
 
-        parser_model = GeneralLlm(model="gpt-4o-mini")  # Use a cheap, fast model for parsing
+        # Use configured parser model, fallback to gemini-2.5-flash
+        parser_model_name = "openrouter/google/gemini-2.5-flash"
+        if self.parent_bot and hasattr(self.parent_bot, "llms"):
+            parser_model_name = self.parent_bot.llms.get("parser", parser_model_name)
+        parser_model = GeneralLlm(model=parser_model_name)
         response = await parser_model.invoke(parsing_prompt)
 
         # Extract JSON from response
@@ -467,7 +471,11 @@ Forecaster reasoning:
 
 JSON output:"""
 
-        parser_model = GeneralLlm(model="gpt-4o-mini")  # Use a cheap, fast model for parsing
+        # Use configured parser model, fallback to gemini-2.5-flash
+        parser_model_name = "openrouter/google/gemini-2.5-flash"
+        if self.parent_bot and hasattr(self.parent_bot, "llms"):
+            parser_model_name = self.parent_bot.llms.get("parser", parser_model_name)
+        parser_model = GeneralLlm(model=parser_model_name)
         response = await parser_model.invoke(parsing_prompt)
 
         # Extract JSON from response

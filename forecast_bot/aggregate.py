@@ -174,9 +174,9 @@ Reasonings:
         if self.parent_bot and getattr(self.parent_bot, "llms", None):
             preferred = self.parent_bot.llms.get(role) or self.parent_bot.llms.get("default") or default_model
 
-        # Try preferred first; if the necessary key is missing, fall back to default and finally gpt-4o-mini.
+        # Try preferred first; if the necessary key is missing, fall back to default and finally gemini-2.5-flash.
         candidates = []
-        for model in (preferred, default_model, "gpt-4o-mini"):
+        for model in (preferred, default_model, "openrouter/google/gemini-2.5-flash"):
             if model not in candidates:
                 candidates.append(model)
 
